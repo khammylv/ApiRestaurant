@@ -8,9 +8,9 @@ import lombok.Setter;
 @Getter
 public class CartDTO {
     @NotNull
-	private Long id;
+	private Long productId;
 	
-	private String name;
+	private String productName;
 	
 	private Double price;
 	

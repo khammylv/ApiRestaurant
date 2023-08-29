@@ -19,6 +19,8 @@ import com.example.ApiRestaurant.services.ProductServices;
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(path = "/products")
 public class ProductController {
+   
+
     @Autowired
     ProductServices productService;
 

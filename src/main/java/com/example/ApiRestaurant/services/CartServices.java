@@ -10,116 +10,136 @@ import org.springframework.stereotype.Service;
 import com.example.ApiRestaurant.entities.Cart;
 import com.example.ApiRestaurant.entities.CartItem;
 import com.example.ApiRestaurant.entities.Cliente;
+import com.example.ApiRestaurant.entities.ItemProduct;
 import com.example.ApiRestaurant.entities.DTO.CartDTO;
 import com.example.ApiRestaurant.exception.ProductNotFoundException;
 import com.example.ApiRestaurant.repositories.CartRepository;
 import com.example.ApiRestaurant.repositories.ClienteRepository;
-
+import com.example.ApiRestaurant.repositories.ItemProductRepository;
 
 @Service
 public class CartServices {
     @Autowired
-    private CartRepository cartRepository;
+    CartRepository cartRepository;
 
     @Autowired
     CartItemServices cartItemServices;
 
-  
+    @Autowired
+    ClienteRepository clienteRepository;
 
     @Autowired
-    private ClienteRepository clienteRepository;
+    ItemProductRepository itemProductRepository;
+
+    @Autowired
+    ItemProductServices itemProductServices;
 
     public List<Cart> getCart() {
         return cartRepository.findAll();
     }
 
-    public Cart addProductToCart(CartDTO cartDto, Long id) {
+    public Cart getCartProduct(Long id) {
         Optional<Cliente> opt = clienteRepository.findById(id);
-        if (!opt.isPresent()) {
+        if (opt.isEmpty()) {
+            throw new ProductNotFoundException("USUARIO NO ENCONTRADO DEL USUARIO");
+        }
+        Optional<Cart> optCart= cartRepository.findById(id);
+        if(optCart.isEmpty()){
+           throw new ProductNotFoundException("CARRO NO ENCONTRADO DEL USUARIO"); 
+        }
+
+        return optCart.get();
+
+    }
+
+    public Cart addProductToCart2(ItemProduct itemProductproduct, Long id) {
+        Optional<Cliente> opt = clienteRepository.findById(id);
+        if (opt.isEmpty()) {
             throw new ProductNotFoundException("USUARIO NO ENCONTRADO");
         }
         Cliente cliente = opt.get();
         Cart customerCart = cliente.getCustomerCart();
-        List<CartItem> cartItems = customerCart.getCartItems();
-        CartItem item = cartItemServices.createItemforCart(cartDto);
-        if (cartItems.size() == 0) {
-            cartItems.add(item);
-            customerCart.setCartTotal(item.getCartProduct().getPrice());
+        List<ItemProduct> itemsP = customerCart.getItemProducts();
+        ItemProduct item = itemProductServices.addItemProduct(itemProductproduct);
+        if (itemsP.size() == 0) {
+            itemsP.add(item);
+            customerCart.setCartTotal(item.getPrice());
         } else {
             boolean flag = false;
-            for (CartItem c : cartItems) {
-                if (c.getCartProduct().getId() == cartDto.getId()) {
-                    c.setCartItemQuantity(c.getCartItemQuantity() + 1);
-                    customerCart.setCartTotal(customerCart.getCartTotal() + c.getCartProduct().getPrice());
+            for (ItemProduct p : itemsP) {
+                if (p.getProductId() == itemProductproduct.getProductId()) {
+                    p.setCartItemQuantity(p.getCartItemQuantity() + 1);
+                    customerCart.setCartTotal(customerCart.getCartTotal() + p.getPrice());
+                    itemProductRepository.save(p);
                     flag = true;
                 }
+
             }
             if (!flag) {
-                cartItems.add(item);
-                customerCart.setCartTotal(customerCart.getCartTotal() + item.getCartProduct().getPrice());
+                itemsP.add(item);
+                customerCart.setCartTotal(customerCart.getCartTotal() + item.getPrice());
             }
-
         }
         return cartRepository.save(cliente.getCustomerCart());
+
     }
 
-
-    public Cart removeProductFromCart(CartDTO cartDto,Long id) {
-         Optional<Cliente> opt = clienteRepository.findById(id);
-        if (!opt.isPresent()) {
+    public Cart removeProductFromCart(ItemProduct itemProductproduct, Long id) {
+        Optional<Cliente> opt = clienteRepository.findById(id);
+        if (opt.isEmpty()) {
             throw new ProductNotFoundException("USUARIO NO ENCONTRADO");
         }
-         Cliente cliente = opt.get();
+        Cliente cliente = opt.get();
         Cart customerCart = cliente.getCustomerCart();
-        List<CartItem> cartItems = customerCart.getCartItems();
-        CartItem item = cartItemServices.createItemforCart(cartDto);
-        if(cartItems.size() == 0) {
+        List<ItemProduct> itemsP = customerCart.getItemProducts();
+        if (itemsP.size() == 0) {
             throw new ProductNotFoundException("NO HAY PRODUCTOS EN EL CARRITO");
         }
         boolean flag = false;
-        for(CartItem c: cartItems) {
-            if (c.getCartProduct().getId() == cartDto.getId()) {
-                c.setCartItemQuantity(c.getCartItemQuantity() - 1);
-                customerCart.setCartTotal(customerCart.getCartTotal() - c.getCartProduct().getPrice());
-				if(c.getCartItemQuantity() == 0) {
-					
-					cartItems.remove(c);
+        for (ItemProduct p : itemsP) {
+            if (p.getProductId() == itemProductproduct.getProductId()) {
+                p.setCartItemQuantity(p.getCartItemQuantity() - 1);
+                customerCart.setCartTotal(customerCart.getCartTotal() - p.getPrice());
+                if (p.getCartItemQuantity() == 0) {
+                    itemsP.remove(p);
+                    itemProductRepository.delete(p);
                     return cartRepository.save(customerCart);
                 }
                 flag = true;
-            }
-        }
-        if(!flag){
-            throw new ProductNotFoundException("ESTE PRODUCTO NO ESTA EN EL CARRO");
-        }
 
-        if(cartItems.size() == 0){
+            }
+
+        }
+        if (!flag) {
+            throw new ProductNotFoundException("PRODUCTO NO AGREGADO EN EL CARRITO");
+        }
+        if (itemsP.size() == 0) {
             cartRepository.save(customerCart);
-            throw new ProductNotFoundException("El carrito esta vacio ahora");
+            throw new ProductNotFoundException("EL CARRITO ESTA VACIO");
         }
         return cartRepository.save(customerCart);
-        
+
     }
-    
+
     public Cart clearCart(Long id) {
 
-       Optional<Cliente> opt = clienteRepository.findById(id);
-       if(opt.isEmpty()){
-         throw new ProductNotFoundException("USUARIO NO ENCONTRADO");
-      
-       }
-           
+        Optional<Cliente> opt = clienteRepository.findById(id);
+        if (opt.isEmpty()) {
+            throw new ProductNotFoundException("USUARIO NO ENCONTRADO");
+
+        }
         Cliente existingCustomer = opt.get();
         Cart customerCart = existingCustomer.getCustomerCart();
-
-        if(customerCart.getCartItems().size() == 0) {
-			throw new ProductNotFoundException("El carrito esta vacio ahora");
-		}
-		List<CartItem> emptyCart = new ArrayList<>();
-        customerCart.setCartItems(emptyCart);
+        if (customerCart.getItemProducts().size() == 0) {
+            throw new ProductNotFoundException("El carrito esta vacio ahora");
+        }
+        List<ItemProduct> emptyCart = new ArrayList<>();
+        customerCart.setItemProducts(emptyCart);
         customerCart.setCartTotal(0.0);
 
         return cartRepository.save(customerCart);
 
     }
+
+ 
 }

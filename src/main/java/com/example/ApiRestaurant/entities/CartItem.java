@@ -19,10 +19,10 @@ public class CartItem {
 
     @Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long cartItemId;
     
      @OneToOne
-     @JsonIgnoreProperties(value={"id", "rating", "description", "categorias"})
+     @JsonIgnoreProperties(value={"productId", "rating", "description", "categorias"})
      private Product cartProduct;
 
     private Integer cartItemQuantity;

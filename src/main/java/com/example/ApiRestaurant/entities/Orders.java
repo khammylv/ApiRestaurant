@@ -27,7 +27,7 @@ public class Orders {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true, nullable = false)
-    private Long id;
+    private Long orderId;
 
      private LocalDate fechaComprado;
 
@@ -46,20 +46,14 @@ public class Orders {
      
     @JsonIgnore
 	@ManyToOne
-	@JoinColumn(name = "customer_id")
+	@JoinColumn(name = "customer_id", referencedColumnName = "clienteId" )
      private Cliente cliente;
 
+    // @OneToMany
+	// private List<CartItem> ordercartItems = new ArrayList<>();
     @OneToMany
-	private List<CartItem> ordercartItems = new ArrayList<>();
-    
+    private List<ItemProduct> ordercartItems = new ArrayList<>();
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public LocalDate getFechaComprado() {
         return fechaComprado;
@@ -117,13 +111,23 @@ public class Orders {
         this.cliente = cliente;
     }
 
-    public List<CartItem> getOrdercartItems() {
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
+    public List<ItemProduct> getOrdercartItems() {
         return ordercartItems;
     }
 
-    public void setOrdercartItems(List<CartItem> ordercartItems) {
+    public void setOrdercartItems(List<ItemProduct> ordercartItems) {
         this.ordercartItems = ordercartItems;
     }
+
+   
 
     
 }

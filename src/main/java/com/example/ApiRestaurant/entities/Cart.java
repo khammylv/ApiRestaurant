@@ -3,7 +3,8 @@ package com.example.ApiRestaurant.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -23,14 +24,17 @@ import lombok.Setter;
 public class Cart {
     @Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private long cartId;
 
+    // @OneToMany(cascade = CascadeType.ALL)
+	// private List<CartItem> cartItems = new ArrayList<>();
+    
     @OneToMany(cascade = CascadeType.ALL)
-	private List<CartItem> cartItems = new ArrayList<>();
+	private List<ItemProduct> itemProducts = new ArrayList<>();
 
     private Double cartTotal;
 
-    @OneToOne()
-	@JsonIgnore
+    @OneToOne(cascade = CascadeType.ALL)
+	@JsonIgnoreProperties(value={ "nombre", "apellido", "username", "customerCart", "orders"})
     private Cliente cliente;
 }

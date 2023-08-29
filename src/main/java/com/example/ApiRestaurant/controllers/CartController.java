@@ -14,16 +14,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.ApiRestaurant.entities.Cart;
+//import com.example.ApiRestaurant.entities.CartItem;
 import com.example.ApiRestaurant.entities.CartItem;
+import com.example.ApiRestaurant.entities.ItemProduct;
 import com.example.ApiRestaurant.entities.DTO.CartDTO;
+//import com.example.ApiRestaurant.services.CartInterface;
 //import com.example.ApiRestaurant.services.CartInterface;
 import com.example.ApiRestaurant.services.CartItemServices;
 import com.example.ApiRestaurant.services.CartServices;
+import com.example.ApiRestaurant.services.ItemProductServices;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(path = "/cart")
 public class CartController {
+    
      @Autowired
      CartServices cartServices;
 
@@ -32,7 +37,9 @@ public class CartController {
 
     @Autowired
     CartItemServices cartItemServices;
-
+    
+     @Autowired
+    ItemProductServices itemServices;
 
     // @PostMapping("agregar/{id}")
     // public ResponseEntity<Cart> addCart(@RequestBody CartDTO cartdto,  @PathVariable("id") Long id){
@@ -40,22 +47,36 @@ public class CartController {
     //     return new ResponseEntity<Cart>(cart,HttpStatus.CREATED);
     // }
 
+    // @PostMapping("agregar/{id}")
+    // public ResponseEntity<Cart> addCart(@RequestBody CartDTO cartdto,  @PathVariable("id") Long id){
+    //     System.out.println(id);
+    //     Cart cart = cartServices.addProductToCart(cartdto, id);
+    //     return new ResponseEntity<Cart>(cart,HttpStatus.CREATED);
+    // }
+
     @PostMapping("agregar/{id}")
-    public ResponseEntity<Cart> addCart(@RequestBody CartDTO cartdto,  @PathVariable("id") Long id){
-        Cart cart = cartServices.addProductToCart(cartdto, id);
+    public ResponseEntity<Cart> addCart(@RequestBody ItemProduct ItemProduct,  @PathVariable("id") Long id){
+        System.out.println(id);
+        Cart cart = cartServices.addProductToCart2(ItemProduct, id);
         return new ResponseEntity<Cart>(cart,HttpStatus.CREATED);
     }
+
 
     @GetMapping()
     public List<Cart> getCartList(){
         return cartServices.getCart();
     }
     
-    // @PostMapping("item")
-    // public ResponseEntity<CartItem> addCart2(@RequestBody CartDTO cartdto){
-    //     CartItem cart = cartItemServices.createItemforCart(cartdto);
-    //     return new ResponseEntity<CartItem>(cart,HttpStatus.CREATED);
-    // }
-
+    @PostMapping("item")
+    public ResponseEntity<CartItem> addCart2(@RequestBody CartDTO cartdto){
+        CartItem cart = cartItemServices.createItemforCart(cartdto);
+        return new ResponseEntity<CartItem>(cart,HttpStatus.CREATED);
+    }
+    
+     @PostMapping("item/items")
+    public ResponseEntity<ItemProduct> addCart3(@RequestBody ItemProduct item){
+        ItemProduct cart = itemServices.addItemProduct(item);
+        return new ResponseEntity<ItemProduct>(cart,HttpStatus.CREATED);
+    }
 
 }
